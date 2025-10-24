@@ -4,7 +4,9 @@ import { restrict } from '../middlewares/auth.mdw.js';
 import * as userModel from '../models/user.model.js';
 import * as watchlistModel from '../models/watchlist.model.js';
 import * as purchasedModel from '../models/purchased.model.js';
-
+import * as courseModel from '../models/course.model.js';
+import * as lectureModel from '../models/lecture.model.js';
+import * as progressModel from '../models/progress.model.js';
 const router = express.Router();
 
 /** Chỉ cho phép student (permission = 1) */
@@ -133,6 +135,59 @@ router.get('/courses', async (req, res) => {
     purchasedCourses: Array.isArray(purchasedCourses) ? purchasedCourses : [],
   });
 });
+///-----------------------------
 
+router.get('/courses/:courseId', restrict, async (req, res) => {
+  const { courseId } = req.params;
+  // TODO (khuyến nghị): kiểm tra học viên có sở hữu khóa này chưa.
+ //if (!(await purchasedModel.isPurchased(req.session.authUser.id, courseId))) return res.status(403).render('403');
+  const lectures = await lectureModel.findByCourse(courseId);
+  res.render('vwStudent/course-lectures', {
+    courseId,
+    lectures
+  });
+});
+////----------------------------- bài giảng ( phát video)
+router.get('/courses/:courseId/:lectureId', restrict, async (req, res) => {
+  const user = req.session.authUser;
+  const { courseId, lectureId } = req.params;
 
+  // TODO: kiểm tra user có sở hữu khóa này chưa (enrollment/purchased)
+  // if (!(await purchasedModel.isPurchased(user.id, courseId))) return res.status(403).render('403');
+
+  const lectures = await lectureModel.findByCourse(courseId);
+  const current = await lectureModel.findById(lectureId);
+  if (!current) return res.status(404).render('404');
+
+  const prog = await progressModel.find(user.id, current.id);
+
+  res.render('vwStudent/learn', {
+    courseId,
+    lectures,
+    current,
+    progress: prog || { last_second: 0, watched_percent: 0, is_completed: false }
+  });
+});
+
+/* API lưu tiến trình */
+router.post('/api/progress', restrict, async (req, res) => {
+  const user = req.session.authUser;
+  const { lecture_id, last_second, duration_sec } = req.body;
+
+  const duration = Math.max(1, Number(duration_sec) || 1);
+  const last = Math.max(0, Number(last_second) || 0);
+  const watched_percent = Math.min(100, (last / duration) * 100);
+  const is_completed = watched_percent >= 90;
+
+  await progressModel.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
+  res.json({ ok: true });
+});
+
+router.post('/api/lecture-duration', restrict, async (req, res) => {
+  const { lecture_id, duration_sec } = req.body;
+  if (!lecture_id || !duration_sec) return res.json({ ok: false });
+
+  await lectureModel.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
+  return res.json({ ok: true });
+});
 export default router;

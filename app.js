@@ -28,9 +28,19 @@ app.engine('handlebars', engine({
       return new Intl.NumberFormat('en-US').format(value);
     },
     formatVnd(value) {
-      if (!value) return '';
-      return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-    }
+      if (value == null) return '';
+      return Number(value).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    },
+    formatDuration(sec) {                 // ✅ đúng: nằm trong helpers
+      const s = Math.max(0, Number(sec) || 0);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const ss = s % 60;
+      return (h ? `${h}:` : '') +
+             String(m).padStart(2, '0') + ':' +
+             String(ss).padStart(2, '0');
+    },
+    eq:(a, b) => { return a === b; }          // (tuỳ chọn) nếu bạn dùng trong view
   }
 }));
 
