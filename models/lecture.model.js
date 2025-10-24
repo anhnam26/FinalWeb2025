@@ -20,5 +20,5 @@ export function findById(lectureId) {
 }
 
 export function updateDuration(lectureId, sec) {
-  return db('lectures').where('id', lectureId).update({ duration: sec });
+  return db('lectures').where('id', lectureId).update({ duration_sec: sec });
 }
