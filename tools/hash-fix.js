@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 const toFix = [
   { name: 'An',   plain: '123456'  },
-  { name: 'Quang', plain: '123123'  },
+  { name: 'huy', plain: '123456'  },
   // thêm user khác nếu bạn biết mật khẩu gốc
 ];
 
