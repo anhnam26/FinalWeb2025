@@ -1,64 +1,90 @@
+{{!-- Layout kế thừa từ admin.handlebars --}}
 <h2 class="text-center mt-4 mb-4">Quản lý Người dùng</h2>
 
 <div class="container">
-  <table class="table table-striped table-bordered">
-    <thead class="table-dark">
+
+  {{!-- ====== BẢNG GIẢNG VIÊN ====== --}}
+  <h4 class="mt-4 mb-3 text-primary">
+    <i class="bi bi-person-badge"></i> Danh sách Giảng viên
+  </h4>
+
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark text-center">
       <tr>
         <th>#</th>
         <th>Họ và tên</th>
         <th>Email</th>
-        <th>Quyền</th>
-        <th>Trạng thái</th>
+        <th>Ngày sinh</th>
         <th>Hành động</th>
       </tr>
     </thead>
     <tbody>
-      {{#each users}}
-      <tr>
-        <td>{{@index}}</td>
-        <td>{{fullname}}</td>
-        <td>{{email}}</td>
-        <td>
-          {{#if isTeacher}}
-            <span class="badge bg-primary">Giảng viên</span>
-          {{else}}
-            <span class="badge bg-secondary">Học viên</span>
-          {{/if}}
-        </td>
-        <td>
-          {{#if isLocked}}
-            <span class="badge bg-danger">Bị khóa</span>
-          {{else}}
-            <span class="badge bg-success">Hoạt động</span>
-          {{/if}}
-        </td>
-        <td>
-          {{#unless isTeacher}}
-            <form action="/admin/user/make-teacher/{{id}}" method="POST" style="display:inline;">
-              <button type="submit" class="btn btn-sm btn-primary">Cấp quyền Giảng viên</button>
-            </form>
-          {{/unless}}
-
-          {{#if isLocked}}
-            <form action="/admin/user/unlock/{{id}}" method="POST" style="display:inline;">
-              <button type="submit" class="btn btn-sm btn-success">Mở khóa</button>
-            </form>
-          {{else}}
-            <form action="/admin/user/lock/{{id}}" method="POST" style="display:inline;">
-              <button type="submit" class="btn btn-sm btn-warning">Khóa</button>
-            </form>
-          {{/if}}
-
-          <form action="/admin/user/delete/{{id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa người dùng này?');">
-            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
-          </form>
-        </td>
-      </tr>
+      {{#if teachers.length}}
+        {{#each teachers}}
+        <tr class="text-center">
+          <td>{{@index}}</td>
+          <td>{{this.name}}</td>
+          <td>{{this.email}}</td>
+          <td>{{this.dob}}</td>
+          <td>
+            <div class="d-flex justify-content-center gap-2">
+              <a href="/admin/user/{{this.id}}" class="btn btn-sm btn-info">Chi tiết</a>
+              <form action="/admin/user/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa giảng viên này?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{/each}}
       {{else}}
-      <tr>
-        <td colspan="6" class="text-center text-muted">Không có người dùng nào.</td>
-      </tr>
-      {{/each}}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Chưa có giảng viên nào.</td>
+        </tr>
+      {{/if}}
     </tbody>
   </table>
+
+  {{!-- ====== BẢNG SINH VIÊN ====== --}}
+  <h4 class="mt-5 mb-3 text-success">
+    <i class="bi bi-people"></i> Danh sách Sinh viên
+  </h4>
+
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>#</th>
+        <th>Họ và tên</th>
+        <th>Email</th>
+        <th>Ngày sinh</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if students.length}}
+        {{#each students}}
+        <tr class="text-center">
+          <td>{{@index}}</td>
+          <td>{{this.name}}</td>
+          <td>{{this.email}}</td>
+          <td>{{this.dob}}</td>
+          <td>
+            <div class="d-flex justify-content-center gap-2">
+              <form action="/admin/users/make-teacher/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn cấp quyền giảng viên cho sinh viên này?');">
+                <button type="submit" class="btn btn-sm btn-warning">Cấp quyền GV</button>
+              </form>
+              <form action="/admin/users/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa sinh viên này?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{/each}}
+      {{else}}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Chưa có sinh viên nào.</td>
+        </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
 </div>
