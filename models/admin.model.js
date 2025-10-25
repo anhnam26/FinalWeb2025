@@ -27,3 +27,29 @@ export async function getCourseStatuses() {
     Disabled: 5
   };
 }
+
+export default {
+  findAll() {
+    return db('users').select('id', 'fullname', 'email', 'isTeacher', 'isLocked');
+  },
+
+  findById(id) {
+    return db('users').where('id', id).first();
+  },
+
+  add(user) {
+    return db('users').insert(user);
+  },
+
+  updateRole(id, isTeacher) {
+    return db('users').where('id', id).update({ isTeacher });
+  },
+
+  updateLock(id, isLocked) {
+    return db('users').where('id', id).update({ isLocked });
+  },
+
+  deleteById(id) {
+    return db('users').where('id', id).del();
+  }
+};

@@ -1,0 +1,56 @@
+{{! Layout kế thừa từ admin.handlebars }}
+{{! Đảm bảo bạn có layout admin.handlebars trong views/layouts/ }}
+{{! Nếu bạn dùng express-handlebars: app.set('view engine', 'hbs'); app.set('views', './views'); }}
+
+<h2 class="text-center mt-4 mb-4">Quản lý Khóa học</h2>
+
+<div class="container">
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Tên khóa học</th>
+        <th>Lĩnh vực</th>
+        <th>Giảng viên</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each courses}}
+      <tr>
+        <td>{{@index}}</td>
+        <td>{{this.coursename}}</td>
+        <td>{{this.category_name}}</td>
+        <td>{{this.teacher_name}}</td>
+        <td>
+          {{#if this.isHidden}}
+            <span class="badge bg-secondary">Đã ẩn</span>
+          {{else}}
+            <span class="badge bg-success">Hiển thị</span>
+          {{/if}}
+        </td>
+        <td>
+          {{#if this.isHidden}}
+            <form action="/admin/course/unhide/{{this.id}}" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-success">Hiện lại</button>
+            </form>
+          {{else}}
+            <form action="/admin/course/hide/{{this.id}}" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-warning">Ẩn</button>
+            </form>
+          {{/if}}
+
+          <form action="/admin/course/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn gỡ bỏ khóa học này?');">
+            <button type="submit" class="btn btn-sm btn-danger">Gỡ bỏ</button>
+          </form>
+        </td>
+      </tr>
+      {{else}}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Không có khóa học nào được tìm thấy.</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

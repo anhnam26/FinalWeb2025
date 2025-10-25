@@ -1,0 +1,77 @@
+{{! Layout kế thừa từ admin.handlebars }}
+{{! File này: views/vwAdmin/adminUser.handlebars }}
+
+<h2 class="text-center mt-4 mb-4">Quản lý Người dùng</h2>
+
+<div class="container">
+  <div class="mb-3 text-end">
+    <a href="/admin/user/add" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Thêm người dùng
+    </a>
+  </div>
+
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark">
+      <tr class="text-center">
+        <th>#</th>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>Vai trò</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each this.users}}
+      <tr class="text-center">
+        <td>{{@index}}</td>
+        <td>{{this.fullname}}</td>
+        <td>{{this.email}}</td>
+        <td>
+          {{#if this.isTeacher}}
+            <span class="badge bg-success">Giảng viên</span>
+          {{else}}
+            <span class="badge bg-secondary">Học viên</span>
+          {{/if}}
+        </td>
+        <td>
+          {{#if this.isLocked}}
+            <span class="badge bg-danger">Đã khóa</span>
+          {{else}}
+            <span class="badge bg-success">Hoạt động</span>
+          {{/if}}
+        </td>
+        <td>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="/admin/user/{{this.id}}" class="btn btn-sm btn-info">Chi tiết</a>
+
+            {{#unless this.isTeacher}}
+            <form action="/admin/user/make-teacher/{{this.id}}" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-warning">Cấp quyền GV</button>
+            </form>
+            {{/unless}}
+
+            {{#if this.isLocked}}
+              <form action="/admin/user/unlock/{{this.id}}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-success">Mở khóa</button>
+              </form>
+            {{else}}
+              <form action="/admin/user/lock/{{this.id}}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-danger">Khóa</button>
+              </form>
+            {{/if}}
+
+            <form action="/admin/user/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa người dùng này?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {{else}}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Không có người dùng nào được tìm thấy.</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
