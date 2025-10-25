@@ -7,6 +7,7 @@ import * as purchasedModel from '../models/purchased.model.js';
 import * as courseModel from '../models/course.model.js';
 import * as lectureModel from '../models/lecture.model.js';
 import * as progressModel from '../models/progress.model.js';
+import * as feedbackModel from '../models/feedback.model.js';
 const router = express.Router();
 
 /** Chỉ cho phép student (permission = 1) */
@@ -130,10 +131,9 @@ router.post('/watchlist/remove', async (req, res) => {
 );
 
 router.get('/courses', async (req, res) => {
-  const purchasedCourses = await purchasedModel.findAllCourses();
-  res.render('vwStudent/courses', {
-    purchasedCourses: Array.isArray(purchasedCourses) ? purchasedCourses : [],
-  });
+  const userId = req.session.authUser.id;
+  const purchasedCourses = await purchasedModel.listByUser(userId);
+  res.render('vwStudent/courses', { purchasedCourses });
 });
 ///-----------------------------
 
@@ -142,9 +142,11 @@ router.get('/courses/:courseId', restrict, async (req, res) => {
   // TODO (khuyến nghị): kiểm tra học viên có sở hữu khóa này chưa.
  //if (!(await purchasedModel.isPurchased(req.session.authUser.id, courseId))) return res.status(403).render('403');
   const lectures = await lectureModel.findByCourse(courseId);
+   const feedbacks = await feedbackModel.findByCourse(courseId);
   res.render('vwStudent/course-lectures', {
     courseId,
-    lectures
+    lectures,
+    feedbacks
   });
 });
 ////----------------------------- bài giảng ( phát video)
@@ -189,5 +191,60 @@ router.post('/api/lecture-duration', restrict, async (req, res) => {
 
   await lectureModel.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
   return res.json({ ok: true });
+});
+///-----------------------------
+/// Đánh giá khoá học - Hiển thị form đánh giá
+router.get('/course/:courseId/feedback', restrict, ensureStudent, async (req, res) => {
+  const user = req.session.authUser;
+  const { courseId } = req.params;
+
+  const course = await courseModel.findById(courseId);
+  if (!course) return res.status(404).render('404');
+
+  // phải mua khoá
+  const purchased = await purchasedModel.isPurchased(user.id, courseId);
+
+  // % hoàn thành (tuỳ ngưỡng, ở đây yêu cầu đã complete >= 1 lecture)
+  const completion = await progressModel.courseCompletion(user.id, courseId);
+  const canReview = purchased && completion.total > 0 && completion.done >= 1;
+
+  const myFeedback = await feedbackModel.findByUserCourse(user.id, courseId);
+
+  return res.render('vwStudent/feedback', {
+    course,
+    completion,              // { total, done, percent }
+    canReview,
+    myFeedback,              // nếu đã có -> fill vào form
+    ok: req.query.ok === '1' // hiển thị thông báo thành công
+  });
+});
+
+// POST: nhận đánh giá
+router.post('/course/:courseId/feedback', restrict, ensureStudent, async (req, res) => {
+  const user = req.session.authUser;
+  const { courseId } = req.params;
+  const { rating, comment } = req.body;
+
+  // validate căn bản
+  const r = Number(rating);
+  if (!Number.isInteger(r) || r < 1 || r > 5) {
+    return res.status(400).render('vwStudent/feedback', {
+      course: await courseModel.findById(courseId),
+      canReview: true,
+      myFeedback: null,
+      completion: await progressModel.courseCompletion(user.id, courseId),
+      error: 'Rating phải từ 1 đến 5 sao.',
+    });
+  }
+
+  // kiểm tra quyền đánh giá (đã mua + đã học 1 bài)
+  const purchased = await purchasedModel.isPurchased(user.id, courseId);
+  const completion = await progressModel.courseCompletion(user.id, courseId);
+  const canReview = purchased && completion.total > 0 && completion.done >= 1;
+  if (!canReview) return res.status(403).render('403');
+
+  await feedbackModel.upsert(user.id, courseId, r, (comment ?? '').trim());
+  // Trigger DB sẽ tự cập nhật courses.rating_avg & rating_count
+  return res.redirect(`/student/course/${courseId}/feedback?ok=1`);
 });
 export default router;

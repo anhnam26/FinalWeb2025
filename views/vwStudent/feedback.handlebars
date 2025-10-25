@@ -1,0 +1,70 @@
+<h2 class="my-3">
+  <i class="bi bi-chat-heart"></i>
+  Đánh giá & phản hồi — {{course.title}}
+</h2>
+
+{{#if ok}}
+  <div class="alert alert-success">Cảm ơn bạn! Đánh giá đã được lưu.</div>
+{{/if}}
+
+{{#if error}}
+  <div class="alert alert-danger">{{error}}</div>
+{{/if}}
+
+<div class="mb-3 text-muted">
+  Tiến độ của bạn: <strong>{{completion.done}} / {{completion.total}}</strong>
+  ({{format_number completion.percent}}%)
+</div>
+
+{{#if canReview}}
+  <form action="/student/course/{{course.id}}/feedback" method="post" class="card shadow-sm">
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Chọn số sao (1–5)</label>
+        <div class="d-flex gap-2">
+          {{!-- radio 1..5, preselect theo myFeedback.rating --}}
+          {{#each (array 1 2 3 4 5) as |star|}}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="rating" id="star{{star}}" value="{{star}}"
+                     {{#if (eq ../myFeedback.rating star)}}checked{{/if}} {{#unless ../myFeedback.rating}}{{#if (eq star 5)}}checked{{/if}}{{/unless}}>
+              <label class="form-check-label" for="star{{star}}">
+                {{star}} ★
+              </label>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="cmt" class="form-label fw-semibold">Nhận xét</label>
+        <textarea id="cmt" name="comment" rows="4" class="form-control"
+                  placeholder="Chia sẻ cảm nhận của bạn...">{{myFeedback.comment}}</textarea>
+      </div>
+
+      <button class="btn btn-primary">
+        <i class="bi bi-send"></i> Gửi đánh giá
+      </button>
+      <a href="/student/courses" class="btn btn-outline-secondary ms-2">
+        <i class="bi bi-arrow-left"></i> Quay lại
+      </a>
+    </div>
+  </form>
+{{else}}
+  <div class="alert alert-info">
+    Bạn chỉ có thể đánh giá sau khi đã mua khoá học và học ít nhất 1 bài giảng.
+  </div>
+{{/if}}
+
+{{!-- Nếu muốn hiển thị các đánh giá khác, bật block dưới
+{{!--
+<hr class="my-4">
+<h5 class="mb-3"><i class="bi bi-people"></i> Đánh giá từ học viên</h5>
+<ul class="list-group">
+  {{#each feedbacks}}
+    <li class="list-group-item">
+      <strong>{{user_name}}</strong> — {{rating}} ★
+      {{!-- <div class="text-muted small">{{created_at}}</div>
+      {{!-- <div>{{comment}}</div>
+    {{!-- </li>
+    {{/each}}
+    {{!-- </ul> --}} 

@@ -30,8 +30,49 @@
       </tbody>
     </table>
   </div>
+  <a href="/student/courses" class="btn btn-link mt-3">
+  <i class="bi bi-arrow-left"></i> Quay lại
+</a>
+
+<hr class="my-4">
+
+<!-- 🔹 Danh sách đánh giá của sinh viên -->
+<h4 class="mt-4 mb-3"><i class="bi bi-chat-square-dots"></i> Đánh giá của sinh viên</h4>
+
+{{#if feedbacks.length}}
+  <div class="row">
+    {{#each feedbacks}}
+      <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h6 class="card-title text-primary mb-2">
+              <i class="bi bi-person-circle"></i> {{student_name}}
+            </h6>
+            <p class="text-warning mb-1">
+              {{#each (range 1 rating)}}<i class="bi bi-star-fill"></i>{{/each}}
+              {{#each (rangeAdd rating 5)}}<i class="bi bi-star"></i>{{/each}}
+            </p>
+            <p class="card-text text-muted fst-italic">"{{comment}}"</p>
+            <small class="text-secondary">{{formatDate created_at}}</small>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="text-muted">Chưa có đánh giá nào cho khóa học này.</div>
+{{/if}}
+
+  <!-- 🔹 Nút dẫn tới trang đánh giá -->
+  <div class="mt-4 text-end">
+    <a href="/student/course/{{courseId}}/feedback" class="btn btn-warning">
+      <i class="bi bi-star-half"></i> Đánh giá khóa học
+    </a>
+  </div>
 {{else}}
   <div class="text-muted">Khóa học chưa có bài giảng.</div>
 {{/if}}
 
-<a href="/student/courses" class="btn btn-link mt-3"><i class="bi bi-arrow-left"></i> Quay lại</a>
+<a href="/student/courses" class="btn btn-link mt-3">
+  <i class="bi bi-arrow-left"></i> Quay lại
+</a>

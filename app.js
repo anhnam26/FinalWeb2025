@@ -40,7 +40,22 @@ app.engine('handlebars', engine({
              String(m).padStart(2, '0') + ':' +
              String(ss).padStart(2, '0');
     },
-    eq:(a, b) => { return a === b; }          // (tuỳ chọn) nếu bạn dùng trong view
+    eq:(a, b) => { return a === b; },
+    array(){ return Array.from(arguments).slice(0,-1); },
+    formatDate(date) {
+    return new Date(date).toLocaleDateString('vi-VN');
+  },
+  range(from, to) {
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  },
+  rangeAdd(count, total) {
+    return Array.from({ length: total - count }, (_, i) => i);
+  },
+  formatDuration(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  } // dùng để tạo [1..5]       // (tuỳ chọn) nếu bạn dùng trong view
   }
 }));
 
