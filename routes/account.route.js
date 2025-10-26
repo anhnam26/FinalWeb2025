@@ -102,7 +102,7 @@ router.post('/verify-otp', async (req, res) => {
       email,
       dob: dob || null,
       permission: 1, // student
-      role: 'user'
+      role: 'student'
     });
 
     // Xóa OTP sau khi dùng
