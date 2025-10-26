@@ -15,88 +15,105 @@ router.get('/signup', (req, res) => {
 });
 
 router.post('/signup', async (req, res) => {
-  const { username, password, name, email, dob, role } = req.body;
+  try {
+    const { username, password, name, email, dob } = req.body;
 
-  const exists = await db('users').where('email', email);
-  if (exists.length > 0) {
-    return res.render('vwAccount/signup', { emailExist: true });
+    // Kiểm tra email có tồn tại chưa
+    const exists = await db('users').where('email', email);
+    if (exists.length > 0)
+      return res.render('vwAccount/signup', { emailExist: true });
+
+    // Tạo OTP và thời hạn
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const expires = new Date(Date.now() + 5 * 60 * 1000);
+
+    // Lưu OTP vào Supabase
+    await db('otp_tokens').insert({
+      email,
+      otp_code: otp.toString(),
+      expires_at: expires,
+      created_at: new Date()
+    });
+    console.log('✅ OTP saved for:', email);
+
+    // Gửi mail qua Mailtrap
+    const transporter = nodemailer.createTransport({
+      host: 'sandbox.smtp.mailtrap.io',
+      port: 2525,
+      auth: {
+        user: '1ce6c9f98f4e73',
+        pass: '18358c1d991aad'
+      }
+    });
+
+    await transporter.sendMail({
+      from: '"FinalWeb System" <noreply@finalweb.com>',
+      to: email,
+      subject: 'Mã xác nhận OTP',
+      text: `Xin chào ${name}, mã OTP của bạn là ${otp}. Mã này có hiệu lực trong 5 phút.`
+    });
+    console.log('✅ OTP sent to:', email);
+
+    // Gửi thông tin sang trang xác nhận OTP
+    res.render('vwAccount/verify-otp', {
+      username,
+      password,
+      name,
+      email,
+      dob
+    });
+  } catch (err) {
+    console.error('❌ Lỗi tại signup:', err);
+    res.status(500).render('vwAccount/signup', {
+      systemError: true,
+      message: 'Đăng ký thất bại, vui lòng thử lại sau.'
+    });
   }
-
-  // Tạo OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  const expires = new Date(Date.now() + 5 * 60 * 1000);
-
-  await db('otp_tokens').insert({
-    email,
-    otp_code: otp.toString(),
-    expires_at: expires,
-    created_at: new Date()
-  });
-
-  // Gửi OTP mailtrap
-  const transporter = nodemailer.createTransport({
-    host: 'sandbox.smtp.mailtrap.io',
-    port: 2525,
-    auth: {
-      user: '1ce6c9f98f4e73',
-      pass: '18358c1d991aad'
-    }
-  });
-
-  await transporter.sendMail({
-    from: '"FinalWeb System" <noreply@finalweb.com>',
-    to: email,
-    subject: 'Mã xác nhận OTP',
-    text: `Xin chào ${name}, mã OTP của bạn là ${otp}. Mã này có hiệu lực trong 5 phút.`
-  });
-
-  // Render verify kèm toàn bộ data qua hidden input
-  res.render('vwAccount/verify-otp', {
-    username,
-    password,
-    name,
-    email,
-    dob,
-    role: role || 'user'
-  });
 });
+
 
 // =========================
 // 2️⃣ XÁC NHẬN MÃ OTP
 // =========================
 router.post('/verify-otp', async (req, res) => {
-  console.log('DEBUG req.body:', req.body);
-  const { username, password, name, email, dob, otp, role } = req.body;
+  try {
+    const { username, password, name, email, dob, otp } = req.body;
 
-  console.log('Email nhận từ form verify-otp:', email);
+    if (!email || !username || !password)
+      return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
 
-  if (!email || !username || !password) {
-    return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
+    const [record] = await db('otp_tokens')
+      .where({ email })
+      .orderBy('created_at', 'desc')
+      .limit(1);
+
+    if (!record) return res.send('❌ Không tìm thấy mã OTP.');
+    if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
+    if (new Date() > record.expires_at)
+      return res.send('❌ Mã OTP đã hết hạn.');
+
+    const hash_password = bcrypt.hashSync(password, 10);
+
+    // ✅ Auto gán role user (student)
+    await db('users').insert({
+      username,
+      password: hash_password,
+      name,
+      email,
+      dob: dob || null,
+      permission: 1, // student
+      role: 'user'
+    });
+
+    // Xóa OTP sau khi dùng
+    await db('otp_tokens').where('email', email).del();
+    console.log('✅ Account created for:', email);
+
+    res.render('vwAccount/signin', { success: true });
+  } catch (err) {
+    console.error('❌ Lỗi tại verify-otp:', err);
+    res.status(500).send('Lỗi xác nhận OTP.');
   }
-
-  const [record] = await db('otp_tokens').where({ email }).orderBy('created_at', 'desc').limit(1);
-  if (!record) return res.send('❌ Không tìm thấy mã OTP.');
-  if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
-  if (new Date() > record.expires_at) return res.send('❌ Mã OTP đã hết hạn.');
-
-  const hash_password = bcrypt.hashSync(password, 10);
-
-  let permission = 1;
-  if (role === 'instructor') permission = 2;
-  else if (role === 'admin') permission = 3;
-
-  await db('users').insert({
-    username,
-    password: hash_password,
-    name,
-    email,
-    dob: dob || null,
-    permission,
-    role: ['user', 'instructor', 'admin'].includes(role) ? role : 'user'
-  });
-
-  await db('otp_tokens').where('email', email).del();
-  res.render('vwAccount/signin', { success: true });
 });
 
 
@@ -106,22 +123,23 @@ router.post('/verify-otp', async (req, res) => {
 router.get('/is-available', async (req, res) => {
   const u = req.query.u;
   const user = await userModel.findByUsername(u);
-  if (!user) return res.json(true);
-  return res.json(false);
+  return res.json(!user);
 });
+
 
 // =========================
 // 4️⃣ ĐĂNG NHẬP
 // =========================
-router.get('/signin', (req, res) => {
-  res.render('vwAccount/signin', { error: false });
-});
-
 router.post('/signin', async (req, res) => {
-  const user = await userModel.findByUsername(req.body.username);
+  console.log('🧾 req.body:', req.body);
+  const { username, password } = req.body;
+  const user = await userModel.findByUsername(username);
+  console.log('🔍 Tìm thấy user:', user);
   if (!user) return res.render('vwAccount/signin', { error: true });
 
-  const ok = bcrypt.compareSync(req.body.password, user.password);
+  const ok = bcrypt.compareSync(password, user.password);
+  console.log('✅ Kết quả so sánh mật khẩu:', ok);
+
   if (!ok) return res.render('vwAccount/signin', { error: true });
 
   req.session.isAuthenticated = true;
@@ -131,12 +149,11 @@ router.post('/signin', async (req, res) => {
     case 1: return res.redirect('/student');
     case 2: return res.redirect('/instructor');
     case 3: return res.redirect('/admin');
-    default:
-      const retUrl = req.session.retUrl || '/';
-      delete req.session.retUrl;
-      return res.redirect(retUrl);
+    default: return res.redirect('/');
   }
 });
+  
+
 
 // =========================
 // 5️⃣ ĐĂNG XUẤT
@@ -147,13 +164,12 @@ router.post('/logout', (req, res) => {
   res.redirect(req.headers.referer);
 });
 
+
 // =========================
 // 6️⃣ HỒ SƠ CÁ NHÂN
 // =========================
 router.get('/profile', restrict, (req, res) => {
-  res.render('vwAccount/profile', {
-    user: req.session.authUser
-  });
+  res.render('vwAccount/profile', { user: req.session.authUser });
 });
 
 router.post('/profile', restrict, async (req, res) => {
@@ -168,6 +184,7 @@ router.post('/profile', restrict, async (req, res) => {
   res.render('vwAccount/profile', { user: req.session.authUser });
 });
 
+
 // =========================
 // 7️⃣ ĐỔI MẬT KHẨU
 // =========================
@@ -181,12 +198,11 @@ router.post('/change-pwd', restrict, async (req, res) => {
   const newPwd = req.body.newPassword;
 
   const match = bcrypt.compareSync(curPwd, req.session.authUser.password);
-  if (!match) {
+  if (!match)
     return res.render('vwAccount/change-pwd', {
       user: req.session.authUser,
       err_message: true
     });
-  }
 
   const hash_password = bcrypt.hashSync(newPwd, 10);
   await userModel.patch(id, { password: hash_password });

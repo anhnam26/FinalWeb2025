@@ -8,7 +8,7 @@ export function restrict(req, res, next) {
 }
 
 export function restrictAdmin(req, res, next) {
-  if (req.session.authUser.permission === 1) {
+  if (req.session.authUser.permission === 3) {
     next();
   } else {
     res.status(403).render('403');

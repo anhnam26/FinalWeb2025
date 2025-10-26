@@ -1,28 +1,38 @@
-<form action="" method="post">
-  <div class="card">
-    <h5 class="card-header">Sign In</h5>
+<form action="/account/signin" method="post">
+  <div class="card shadow border-0 rounded-4 mt-5" style="max-width: 500px; margin: auto;">
+    <h5 class="card-header text-center bg-primary text-white fw-bold">Sign In</h5>
     <div class="card-body">
       {{#if error}}
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>⚠️ Error.</strong> Invalid username or password.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        <strong>Error.</strong> Invalid username or password.
-      </div>  
+      </div>
       {{/if}}
+
+      {{#if success}}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        🎉 Account created successfully! Please sign in now.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {{/if}}
+
       <div class="mb-3">
         <label for="txtUsername" class="form-label">Username</label>
-        <input type="text" class="form-control" id="txtUsername" name="name" autofocus />
+        <input type="text" class="form-control" id="txtUsername" name="username" placeholder="Enter your username"
+          required autofocus />
       </div>
+
       <div class="mb-3">
         <label for="txtPassword" class="form-label">Password</label>
-        <input type="password" class="form-control" id="txtPassword" name="password" />
+        <input type="password" class="form-control" id="txtPassword" name="password" placeholder="Enter your password"
+          required />
       </div>
     </div>
-    <div class="card-footer text-muted">
-      <button type="submit" class="btn btn-outline-primary">
-        <i class="bi bi-box-arrow-in-right"></i>
-        Sign In
+
+    <div class="card-footer text-center bg-light">
+      <button type="submit" class="btn btn-primary px-4 fw-bold">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
       </button>
     </div>
   </div>
-
 </form>

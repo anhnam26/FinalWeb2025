@@ -1,28 +1,33 @@
-<div class="card shadow-sm mt-5 border-0 rounded-4">
-    <h5 class="card-header bg-success text-white fw-bold text-center py-3">Xác minh mã OTP</h5>
-
-    <div class="card-body px-4">
-        <form id="frmVerifyOtp" method="post" action="/account/verify-otp">
-            <p class="text-muted text-center">
-                Mã OTP đã được gửi tới email: <strong>{{email}}</strong>
-            </p>
+<div class="card mt-5 shadow border-0 rounded-4 mx-auto" style="max-width: 600px;">
+    <h5 class="card-header bg-success text-white fw-bold text-center py-3">
+        Xác minh mã OTP
+    </h5>
+    <div class="card-body px-4 py-4">
+        <form method="post" action="/account/verify-otp">
+            <div class="mb-3 text-center">
+                <p class="text-muted">
+                    Mã OTP đã được gửi tới email: <b>{{email}}</b>
+                </p>
+            </div>
 
             <div class="mb-3">
                 <label for="otp" class="form-label fw-semibold">Nhập mã OTP</label>
-                <input type="text" id="otp" name="otp" class="form-control text-center" maxlength="6"
-                    placeholder="Nhập mã OTP gồm 6 số" required>
+                <input type="text" class="form-control text-center" id="otp" name="otp" placeholder="Nhập mã OTP..."
+                    required>
             </div>
 
+            <!-- 🧩 Giữ lại dữ liệu signup trong hidden input -->
             <input type="hidden" name="username" value="{{username}}">
             <input type="hidden" name="password" value="{{password}}">
             <input type="hidden" name="name" value="{{name}}">
             <input type="hidden" name="email" value="{{email}}">
             <input type="hidden" name="dob" value="{{dob}}">
-            <input type="hidden" name="role" value="{{role}}">
 
-            <button type="submit" class="btn btn-success w-100 fw-bold">
-                <i class="bi bi-shield-lock-fill me-1"></i> Xác nhận OTP
-            </button>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success fw-bold">
+                    <i class="bi bi-shield-lock"></i> Xác nhận OTP
+                </button>
+            </div>
         </form>
     </div>
 </div>

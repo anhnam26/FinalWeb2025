@@ -70,7 +70,7 @@
                 return;
             }
 
-            // Nếu hợp lệ → submit form
+            // ✅ Nếu hợp lệ → submit form
             e.target.submit();
         } catch (err) {
             console.error(err);
@@ -87,7 +87,7 @@
 
 <div class="card mt-4 shadow-sm border-0 rounded-4">
     <h5 class="card-header bg-primary text-white fw-bold text-center py-3">
-        Đăng ký tài khoản
+        Đăng ký tài khoản học viên
     </h5>
 
     <div class="card-body px-4">
@@ -127,17 +127,13 @@
                 <input type="date" class="form-control" id="txtDoB" name="dob">
             </div>
 
-            <div class="mb-3">
-                <label for="role" class="form-label fw-semibold">Loại tài khoản</label>
-                <select class="form-select" id="role" name="role">
-                    <option value="user" selected>Học viên (Student)</option>
-                    <option value="instructor">Giảng viên (Instructor)</option>
-                    <option value="admin">Quản trị viên (Admin)</option>
-                </select>
+            <!-- Ẩn role cố định -->
+            <input type="hidden" name="role" value="user">
 
-                <div class="form-text text-muted">Mặc định là học viên. Các quyền cao hơn chỉ dành cho giảng viên hoặc
-                    admin.</div>
-            </div>
+            <p class="text-muted fst-italic small">
+                * Tài khoản mới đăng ký sẽ mặc định là <b>học viên</b>.
+                Giảng viên và quản trị viên chỉ được cấp bởi admin.
+            </p>
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary flex-fill">
