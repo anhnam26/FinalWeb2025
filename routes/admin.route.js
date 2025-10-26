@@ -110,21 +110,18 @@ router.post('/categories/edit', async (req, res) => {
   res.redirect('/admin/categories');
 });
 
+// Xóa lĩnh vực
 router.post('/categories/delete', async (req, res) => {
-  const id = Number(req.body.id);
-  const count = await courseModel.countByCategory?.(id) ?? 0;
-
-  if (count > 0) {
-    return res.render('vwAdmin/categories', {
-      layout: 'admin',
-      categories: await categoryModel.getAllWithCourseCount?.() ?? [],
-      user: req.session.authUser,
-      error: `Không thể xóa danh mục ID ${id} – đang có ${count} khóa học.`,
+  try {
+    const { id } = req.body;
+    await categoryModel.remove(id);
+    res.redirect('/admin/categories');
+  } catch (error) {
+    console.error(error);
+    res.render('admin/categories', {
+      error: 'Lỗi khi xóa lĩnh vực',
     });
   }
-
-  await categoryModel.remove(id);
-  res.redirect('/admin/categories');
 });
 
 /** ------------------------------
@@ -205,6 +202,17 @@ router.post('/courses/delete/:id', async (req, res) => {
   const { id } = req.params;
   await courseModel.deleteById(id);
   res.redirect('/admin/courses');
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await categoryModel.remove(id);
+    res.json({ message: 'Xóa danh mục thành công!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi khi xóa danh mục' });
+  }
 });
 
 export default router;

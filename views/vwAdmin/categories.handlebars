@@ -36,7 +36,7 @@
               <th style="width:8%">#</th>
               <th>Tên lĩnh vực</th>
               <th style="width:18%">Số khóa học</th>
-              <th style="width:25%">Thao tác</th>
+              <th style="width:30%">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -63,14 +63,16 @@
 
                 <!-- Nút xóa -->
                 {{#if this.courseCount}}
+                  <!-- Nếu có khóa học, khóa nút xóa -->
                   <button class="btn btn-secondary btn-sm" disabled title="Không thể xóa - có khóa học">
                     <i class="bi bi-lock-fill"></i> Khóa
                   </button>
                 {{else}}
+                  <!-- Nếu không có khóa học, cho phép xóa -->
                   <form action="/admin/categories/delete" method="POST" class="d-inline">
                     <input type="hidden" name="id" value="{{this.id}}">
                     <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Bạn chắc chắn muốn xóa lĩnh vực này?')">
+                            onclick="return confirm('Bạn có chắc chắn muốn xóa lĩnh vực này không?')">
                       <i class="bi bi-trash"></i> Xóa
                     </button>
                   </form>
@@ -143,7 +145,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Gán dữ liệu vào modal sửa khi nhấn nút
+    // Gán dữ liệu vào modal sửa khi nhấn nút "Sửa"
     const editModal = document.getElementById('editModal');
     editModal.addEventListener('show.bs.modal', event => {
       const button = event.relatedTarget;
@@ -151,5 +153,6 @@
       document.getElementById('edit-name').value = button.getAttribute('data-name');
     });
   </script>
+
 </body>
 </html>

@@ -9,7 +9,6 @@ export async function getAllWithCourseCount() {
     .orderBy('c.id', 'asc');
 }
 
-
 export async function add(category) {
   return await db('categories').insert({ catname: category.name });
 }

@@ -1,15 +1,17 @@
+import db from '../utils/db.js';
 export async function getDashboardStats() {
+  const [totalCourses] = await db('courses').count('id as total');
+  const totalStudents = await db('users').where('permission', '=', 1).count('id as total').first();
+  const [totalInstructors] = await db('users').where('permission', 2).count('id as total');
+  const [totalCategories] = await db('categories').count('id as total');
+
   return {
-    totalCourses: 150,
-    publishedCourses: 110,
-    totalStudents: 1250,
-    newStudentsThisMonth: 120,
-    totalInstructors: 45,
-    newInstructors: 3,
-    totalCategories: 12,
+    totalCourses: totalCourses.total || 0,
+    totalStudents: totalStudents.total || 0,
+    totalInstructors: totalInstructors.total || 0,
+    totalCategories: totalCategories.total || 0,
   };
 }
-
 export async function getTopCategories() {
   return [
     { name: 'Lập trình Web', count: 45 },
