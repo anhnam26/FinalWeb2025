@@ -6,8 +6,15 @@ export async function getAllWithCourseCount() {
     .select('c.id', 'c.catname as name')
     .count('cs.id as courseCount')
     .groupBy('c.id', 'c.catname')
-    .orderBy('c.id', 'asc');
+    .orderBy('c.id', 'asc')
+    .then(rows =>
+      rows.map(r => ({
+        ...r,
+        courseCount: Number(r.courseCount)
+      }))
+    );
 }
+
 
 export async function add(category) {
   return await db('categories').insert({ catname: category.name });

@@ -5,6 +5,8 @@ import * as userModel from '../models/user.model.js';
 import * as adminModel from '../models/admin.model.js';
 import * as categoryModel from '../models/categories.model.js';
 import * as courseModel from '../models/course.model.js';
+import * as categoryController from '../controllers/categories.controller.js';
+
 import Handlebars from 'handlebars';
 
 Handlebars.registerHelper('eq', (a, b) => a === b);
@@ -203,6 +205,8 @@ router.post('/courses/delete/:id', async (req, res) => {
   await courseModel.deleteById(id);
   res.redirect('/admin/courses');
 });
+
+router.post('/categories/delete', categoryController.deleteCategory);
 
 router.delete('/:id', async (req, res) => {
   try {

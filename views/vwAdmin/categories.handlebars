@@ -51,34 +51,33 @@
                   <span class="badge bg-secondary">0</span>
                 {{/if}}
               </td>
+
+              <!-- ✅ Cập nhật phần thao tác theo yêu cầu -->
               <td class="text-center">
-                <!-- Nút sửa -->
-                <button class="btn btn-warning btn-sm me-1"
+                <button class="btn btn-primary btn-sm" 
                         data-bs-toggle="modal"
                         data-bs-target="#editModal"
                         data-id="{{this.id}}"
                         data-name="{{this.name}}">
-                  <i class="bi bi-pencil-square"></i> Sửa
+                  <i class="bi bi-pencil"></i> Sửa
                 </button>
 
-                <!-- Nút xóa -->
-                {{#if this.courseCount}}
-                  <!-- Nếu có khóa học, khóa nút xóa -->
-                  <button class="btn btn-secondary btn-sm" disabled title="Không thể xóa - có khóa học">
-                    <i class="bi bi-lock-fill"></i> Khóa
+                {{#if (eq this.courseCount 0)}}
+                <form action="/admin/categories/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="id" value="{{this.id}}">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          onclick="return confirm('Bạn có chắc chắn muốn xóa lĩnh vực này không?');">
+                    <i class="bi bi-trash"></i> Xóa
                   </button>
+                </form>
                 {{else}}
-                  <!-- Nếu không có khóa học, cho phép xóa -->
-                  <form action="/admin/categories/delete" method="POST" class="d-inline">
-                    <input type="hidden" name="id" value="{{this.id}}">
-                    <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Bạn có chắc chắn muốn xóa lĩnh vực này không?')">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </form>
+                <button class="btn btn-secondary btn-sm" disabled title="Không thể xóa lĩnh vực đang có khóa học">
+                  <i class="bi bi-lock"></i> Không thể xóa
+                </button>
                 {{/if}}
               </td>
             </tr>
+
             {{else}}
             <tr>
               <td colspan="4" class="text-center text-muted py-4">

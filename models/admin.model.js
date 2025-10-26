@@ -55,3 +55,4 @@ export default {
     return db('users').where('id', id).del();
   }
 };
+
