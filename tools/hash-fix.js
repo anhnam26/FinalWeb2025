@@ -3,8 +3,19 @@ import db from '../utils/db.js';     // dùng lại đúng kết nối của app
 import bcrypt from 'bcryptjs';
 
 const toFix = [
-  { name: 'An',   plain: '123456'  },
-  { name: 'huy', plain: '123456'  },
+   { name: 'admin',   plain: '123456'  },
+  { name: 'A',   plain: '123456'  },
+  { name: 'B',   plain: '123456'  },
+  { name: 'C',   plain: '123456'  },
+  { name: 'D',   plain: '123456'  },
+  { name: 'E',   plain: '123456'  },
+  { name: 'F',   plain: '123456'  },
+  { name: 'G',   plain: '123456'  },
+  { name: 'H',   plain: '123456'  },
+  { name: 'I',   plain: '123456'  },
+  { name: 'K',   plain: '123456'  },
+
+  { name: 'tuan', plain: '123456'  },
   // thêm user khác nếu bạn biết mật khẩu gốc
 ];
 
