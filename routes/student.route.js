@@ -108,28 +108,75 @@ router.post('/change-pwd', async (req, res) => {
     success: 'Đổi mật khẩu thành công!',
   });
 });
-router.get('/watchlist', async (req, res) => {
-  const items = await watchlistModel.findAll();
-  res.render('vwStudent/watchlist', { items });
+//----------------------------- Watchlist
+// ================== WATCHLIST (theo từng student) ==================
+// ================== WATCHLIST (theo từng student) ==================
+router.get('/watchlist', async (req, res, next) => {
+  try {
+    const userId = req.session.authUser.id;
+    const items = await watchlistModel.findAllByUser(userId);
+
+    return res.render('vwStudent/watchlist', {
+      items,
+      user: req.session.authUser,
+      isAuthenticated: req.session.isAuthenticated,
+      authUser: req.session.authUser,
+      ok: req.query.ok === '1',
+      removed: req.query.removed === '1'
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/watchlist/add', async (req, res) => {
-  const { course_id, course_title } = req.body;
+router.post('/watchlist/add', async (req, res, next) => {
+  try {
+    const userId = req.session.authUser.id;
+    const courseId = Number(req.body.course_id);
 
-  const existed = await watchlistModel.isInWatchlist(course_id);
-  if (!existed) await watchlistModel.add(course_id, course_title);
-  res.redirect('/courses/' + course_id);
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+      return res.status(400).send('course_id không hợp lệ');
+    }
 
+    // kiểm tra khóa học có tồn tại
+    const course = await courseModel.findById(courseId);
+    if (!course) return res.status(404).render('404');
 
+    // nếu client không gửi title, lấy từ bảng courses
+    const title = (req.body.course_title ?? course.title ?? null)?.toString() ?? null;
+
+    // (không bắt buộc) kiểm tra trùng để tránh query insert dư thừa
+    const existed = await watchlistModel.isInWatchlist(userId, courseId);
+    if (!existed) {
+      await watchlistModel.add({ user_id: userId, course_id: courseId, course_title: title });
+    }
+
+    // về trang trước nếu có, mặc định về trang chi tiết course
+    const back = req.get('Referer') || `/courses/${courseId}`;
+    return res.redirect(back);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/watchlist/remove', async (req, res) => {
-  const { course_id } = req.body;
-  await watchlistModel.remove(course_id);
-  res.redirect('/student/watchlist');
-}
-);
+router.post('/watchlist/remove', async (req, res, next) => {
+  try {
+    const userId = req.session.authUser.id;
+    const courseId = Number(req.body.course_id);
 
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+      return res.status(400).send('course_id không hợp lệ');
+    }
+
+    await watchlistModel.remove(userId, courseId);
+
+    // Về trang watchlist với cờ removed để hiện thông báo nếu muốn
+    return res.redirect('/student/watchlist?removed=1');
+  } catch (err) {
+    next(err);
+  }
+});
+//----------------------------- Purchased Courses
 router.get('/courses', async (req, res) => {
   const userId = req.session.authUser.id;
   const purchasedCourses = await purchasedModel.listByUser(userId);

@@ -1,54 +1,79 @@
-// src/models/watchlist.model.js
+// /models/watchlist.model.js
 import db from '../utils/db.js';
 
 /**
- * Thêm 1 khóa học vào watchlist.
- * - Tránh trùng course_id bằng onConflict(...).ignore()
- * - Trả về bản ghi vừa thêm (nếu thêm mới), hoặc [] nếu đã tồn tại
+ * Thêm vào watchlist của 1 user.
+ * - Tránh trùng (user_id, course_id)
+ * - Không bắt buộc course_title (đã có trong bảng courses); nếu bảng watchlist của bạn
+ *   còn cột course_title thì vẫn ghi kèm (nullable).
  */
-export function add(course_id, course_title) {
+export function add({ user_id, course_id, course_title = null }) {
   return db('watchlist')
-    .insert({ course_id, course_title })
-    .onConflict('course_id')     // yêu cầu Postgres ≥ 9.5
+    .insert({ user_id, course_id, course_title })
+    .onConflict(['user_id', 'course_id'])
     .ignore()
     .returning('*');
 }
 
-/** Kiểm tra 1 khóa học đã có trong watchlist chưa */
-export function isInWatchlist(course_id) {
+/** Kiểm tra 1 khóa đã có trong watchlist của user chưa */
+export function isInWatchlist(user_id, course_id) {
   return db('watchlist')
-    .where({ course_id })
+    .where({ user_id, course_id })
     .first();
 }
 
-/** Lấy tất cả các khóa học trong watchlist */
-
 /**
- * Lấy danh sách watchlist (kèm thông tin khóa học để hiện đẹp ở UI)
- * Nếu chỉ muốn đúng dữ liệu watchlist thì bỏ phần join.
+ * Lấy danh sách watchlist của user + thông tin khóa học từ bảng courses
+ * Phù hợp với cấu trúc bảng courses hiện tại của bạn (ảnh chụp).
  */
-export function findAll() {
+export function findAllByUser(user_id) {
   return db('watchlist as w')
     .leftJoin('courses as c', 'w.course_id', 'c.id')
+    .where('w.user_id', user_id)
     .select(
+      // watchlist fields
       'w.id',
+      'w.user_id',
       'w.course_id',
-      'w.course_title',
+      'w.added_at',
+      'w.course_title',                // vẫn giữ để tương thích, có thể null
+
+      // course fields (theo bảng courses của bạn)
+      'c.title',
       'c.thumbnail',
       'c.short_desc',
+      'c.full_desc',
+      'c.price',
+      'c.sale_price',
+      'c.rating_avg',
+      'c.rating_count',
+      'c.student_count',
+      'c.category_id',
+      'c.instructor_id',
+      'c.created_at',
+      'c.updated_at'
     )
+    .orderBy('w.added_at', 'desc');
 }
 
-/** Xóa 1 mục khỏi watchlist theo course_id */
-export function remove(course_id) {
+/** Xóa khỏi watchlist theo (user_id, course_id) */
+export function remove(user_id, course_id) {
   return db('watchlist')
-    .where({ course_id })
+    .where({ user_id, course_id })
     .del();
 }
 
-/** (Tuỳ chọn) Lấy 1 dòng watchlist theo id */
-export function findById(id) {
+/** (tuỳ chọn) Lấy 1 dòng watchlist theo id nhưng ràng buộc user */
+export function findById(id, user_id) {
   return db('watchlist')
-    .where({ id })
+    .where({ id, user_id })
+    .first();
+}
+
+/** (tuỳ chọn) Đếm số mục watchlist của user */
+export function countByUser(user_id) {
+  return db('watchlist')
+    .where({ user_id })
+    .count('id as total')
     .first();
 }
