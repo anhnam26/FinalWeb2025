@@ -130,6 +130,12 @@ router.get('/is-available', async (req, res) => {
 // =========================
 // 4️⃣ ĐĂNG NHẬP
 // =========================
+router.get('/signin', (req, res) => {
+  res.render('vwAccount/signin', {
+    error: false
+  });
+});
+
 router.post('/signin', async (req, res) => {
   console.log('🧾 req.body:', req.body);
   const { username, password } = req.body;
@@ -152,7 +158,7 @@ router.post('/signin', async (req, res) => {
     default: return res.redirect('/');
   }
 });
-  
+
 
 
 // =========================
