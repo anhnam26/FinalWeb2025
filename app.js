@@ -1,3 +1,7 @@
+// JWT Auth Route
+import 'dotenv/config';
+import jwtRoute from './routes/jwt.route.js';
+
 // app.js — Unified (Express + ESM + Handlebars)
 
 import express from 'express';
@@ -215,6 +219,8 @@ app.use('/categories', categoryRoute);
 app.use('/search', searchRouter);
 app.use('/cart', cartRouter);
 app.use('/instructor', instructorRouter);
+
+app.use('/api/auth', jwtRoute);
 
 
 // Errors

@@ -1,0 +1,7 @@
+### Login demo
+POST http://localhost:4000/api/auth/login-demo
+
+
+### Access protected API
+GET http://localhost:4000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicGVybWlzc2lvbiI6MSwiaWF0IjoxNzY2NTA0NDE3LCJleHAiOjE3NjY1MDYyMTd9.q3SVrEXv9OU21H92QYIv4Wy-GZYpDNTXCwINY_FlTGA

@@ -271,4 +271,11 @@ router.post('/change-pwd', restrict, async (req, res) => {
   res.redirect('/account/profile');
 });
 
+/* =========================
+ * 8) JWT WEB DEMO (NO SESSION)
+ * ======================= */
+router.get('/jwt-test', (req, res) => {
+  res.render('jwt-test');
+});
+
 export default router;

@@ -1,0 +1,32 @@
+<h3>JWT Web Demo</h3>
+
+<p>
+    Trang này dùng <b>JWT</b> (không dùng session) để gọi API bảo vệ.
+</p>
+
+<button id="callApi" class="btn btn-primary">
+    Call Protected API (/api/auth/me)
+</button>
+
+<pre id="result" style="margin-top: 15px;"></pre>
+
+<script>
+    document.getElementById('callApi').addEventListener('click', async () => {
+        const token = localStorage.getItem('jwt_demo');
+
+        if (!token) {
+            alert('Chưa có JWT. Vui lòng login Google (Demo) trước.');
+            return;
+        }
+
+        const res = await fetch('/api/auth/me', {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        });
+
+        const data = await res.json();
+        document.getElementById('result').innerText =
+            JSON.stringify(data, null, 2);
+    });
+</script>
