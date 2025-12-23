@@ -40,38 +40,25 @@
     </div>
 
     <div class="mt-3 text-center">
-      <button type="button" id="googleLoginBtn" class="btn btn-danger px-4 fw-bold">
+      <a href="/account/google" class="btn btn-danger px-4 fw-bold">
         <i class="bi bi-google"></i> Sign in with Google
-      </button>
+      </a>
     </div>
   </div>
 </form>
 
 <script>
   document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-    try {
-      // 1. Gọi API login-demo để lấy JWT
-      const res = await fetch('/api/auth/login-demo', {
-        method: 'POST'
-      });
+    const res = await fetch('/api/auth/login-demo', {
+      method: 'POST'
+    });
 
-      if (!res.ok) {
-        alert('Login demo failed');
-        return;
-      }
+    const data = await res.json();
 
-      const data = await res.json();
+    // lưu JWT cho demo API
+    localStorage.setItem('jwt_demo', data.token);
 
-      // 2. Lưu JWT (demo)
-      localStorage.setItem('jwt_demo', data.token);
-
-      // 3. Thông báo thành công
-      alert('Google Login (Demo) thành công.\nJWT đã được lưu.');
-
-      // (tuỳ chọn) chuyển trang test
-      window.location.href = '/account/jwt-test';
-    } catch (err) {
-      alert('Error calling JWT demo API');
-    }
+    // login web luôn
+    window.location.href = data.redirect;
   });
 </script>

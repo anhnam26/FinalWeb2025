@@ -230,5 +230,11 @@ app.use((err, req, res, next) => {
   res.render('500');
 });
 
+app.use(session({
+  secret: 'SESSION_SECRET',
+  resave: false,
+  saveUninitialized: false
+}));
+
 // Start
 app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));

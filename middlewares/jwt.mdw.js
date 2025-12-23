@@ -1,28 +1,15 @@
 import jwt from 'jsonwebtoken';
 
 export function jwtAuth(req, res, next) {
-    const authHeader = req.headers.authorization;
+    const auth = req.headers.authorization;
+    if (!auth) return res.status(401).send('No token');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Missing JWT token' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
+    const token = auth.split(' ')[1];
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
-        req.jwtUser = payload; // { id, permission }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
         next();
-    } catch (err) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
+    } catch {
+        return res.status(401).send('Invalid token');
     }
-}
-
-export function jwtRequirePermission(permission) {
-    return (req, res, next) => {
-        if (req.jwtUser.permission !== permission) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
-        next();
-    };
 }

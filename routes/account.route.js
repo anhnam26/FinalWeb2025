@@ -8,7 +8,72 @@ import db from '../utils/db.js';
 import * as userModel from '../models/user.model.js';
 import { restrict } from '../middlewares/auth.mdw.js';
 
+import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
 const router = express.Router();
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+router.get('/google', (req, res) => {
+  const url = googleClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['profile', 'email'],
+  });
+  res.redirect(url);
+});
+router.get('/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    const { tokens } = await googleClient.getToken(code);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+
+    let user = await db('users').where({ email }).first();
+
+    if (!user) {
+      const [id] = await db('users').insert({
+        name,
+        email,
+        permission: 1,
+        role: 'student',
+        is_disabled: false,
+      });
+      user = await db('users').where({ id }).first();
+    }
+
+    //  TẠO JWT CỦA HỆ THỐNG
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        permission: user.permission,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    );
+
+    //  redirect kèm token
+    res.redirect(`/account/jwt-success?token=${token}`);
+  } catch (err) {
+    console.error(err);
+    res.redirect('/account/signin');
+  }
+});
+
+router.get('/jwt-success', (req, res) => {
+  res.render('vwAccount/jwt-success', {
+    token: req.query.token,
+  });
+});
 
 /* =========================
  * 1) SIGN UP (SEND OTP)
