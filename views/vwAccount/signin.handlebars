@@ -47,18 +47,3 @@
   </div>
 </form>
 
-<script>
-  document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-    const res = await fetch('/api/auth/login-demo', {
-      method: 'POST'
-    });
-
-    const data = await res.json();
-
-    // lưu JWT cho demo API
-    localStorage.setItem('jwt_demo', data.token);
-
-    // login web luôn
-    window.location.href = data.redirect;
-  });
-</script>

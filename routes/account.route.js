@@ -10,6 +10,7 @@ import { restrict } from '../middlewares/auth.mdw.js';
 
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+
 const router = express.Router();
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -17,10 +18,12 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_REDIRECT_URI
 );
 router.get('/google', (req, res) => {
+  console.log('>>> HIT /account/google');
   const url = googleClient.generateAuthUrl({
     access_type: 'offline',
     scope: ['profile', 'email'],
   });
+  console.log('>>> GOOGLE URL:', url);
   res.redirect(url);
 });
 router.get('/google/callback', async (req, res) => {
@@ -40,34 +43,37 @@ router.get('/google/callback', async (req, res) => {
     let user = await db('users').where({ email }).first();
 
     if (!user) {
+      const fakePassword = bcrypt.hashSync(
+        Math.random().toString(36),
+          10
+        );
+    
+
       const [id] = await db('users').insert({
         name,
         email,
+        password: fakePassword,
         permission: 1,
         role: 'student',
         is_disabled: false,
       });
+
       user = await db('users').where({ id }).first();
     }
 
-    //  TẠO JWT CỦA HỆ THỐNG
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        permission: user.permission,
-      },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES }
+      { expiresIn: '30m' }
     );
 
-    //  redirect kèm token
     res.redirect(`/account/jwt-success?token=${token}`);
   } catch (err) {
     console.error(err);
     res.redirect('/account/signin');
   }
 });
+
 
 router.get('/jwt-success', (req, res) => {
   res.render('vwAccount/jwt-success', {
