@@ -219,10 +219,7 @@ app.use('/instructor', instructorRouter);
 
 // Errors
 app.use((req, res) => res.status(404).render('404'));
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.render('500');
-});
+app.use((err, req, res, next) => res.render('500'));
 
 // Start
 app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
